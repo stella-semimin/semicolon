@@ -205,7 +205,7 @@ write.csv(data.frame(store_name,store_add),"lottemart.csv")
 
 
 
- ##### 메가박스(주소는 끌어왔으나, 매장명 추가로 확인하기_내일오전에 끝내기)
+ ##### 메가박스(주소는 끌어왔으나, 매장명 추가로 확인하기_수정완료)
 
 ```r
 # megabox 페이지 들어가기
@@ -219,23 +219,41 @@ megabox2<-NULL
 megaboxtotal<-NULL
 
 for(i in 1:20){
+  # 매장명클릭
+  nextCss<- paste0("#contents > div.inner-wrap > div.theater-box > div.theater-place > ul > li.on > div > ul > li:nth-child(",i,") > a")
+  dom_name<-remDr$findElement(using='css', nextCss)
+  dom_name$clickElement()
+  Sys.sleep(1)
+  
+  # 매장명 받아오는 부분
+  dom_name<-remDr$findElements(using='css', "#contents > div.theater-detail-page > div.theater-all > p")
+  megabox1<-sapply(dom_name,function(x){x$getElementText()})
+  print(megabox1)
+  Sys.sleep(1)
+  
+  #주소받아오는 부분
+  dom_addr<-remDr$findElements(using='css', "#tab01 > ul:nth-child(9) > li")
+  megabox2<-sapply(dom_addr,function(x){x$getElementText()})
+  print(megabox2)
+  Sys.sleep(1)
+  
+  # 변수에 매장명+주소 넣기
+  megaboxtotal<-data.frame(rbind(megaboxtotal, cbind(megabox1,megabox2)))
 
-nextCss<- paste0("#contents > div.inner-wrap > div.theater-box > div.theater-place > ul > li.on > div > ul > li:nth-child(",i,") > a")
-dom_name<-remDr$findElement(using='css', nextCss)
-dom_name$clickElement()
-Sys.sleep(1)
+  # 다시 list페이지로 이동
+  remDr$navigate("https://www.megabox.co.kr/theater/list")
+  
+  Sys.sleep(1)
 
-dom_addr<-remDr$findElements(using='css', "#tab01 > ul:nth-child(9) > li")
-megabox2<-sapply(dom_addr,function(x){x$getElementText()})
-print(megabox2)
-Sys.sleep(1)
-megaboxtotal<-c(megaboxtotal,unlist(megabox2))
-
-Sys.sleep(1)
-remDr$navigate("https://www.megabox.co.kr/theater/list")
 }
-megabox3<-list(megaboxtotal)
+
 View(megaboxtotal)
+store_name<-unlist(megaboxtotal$megabox1)
+store_add<-unlist(gsub("도로명주소 : ","",megaboxtotal$megabox2))
+
+write.csv(data.frame(store_name,store_add),"megabox.csv")
+megabox3<-list(megaboxtotal)
+
 
 
 ```
